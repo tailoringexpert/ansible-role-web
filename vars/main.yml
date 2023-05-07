@@ -1,0 +1,23 @@
+---
+webserver:
+  #service: apache2
+  #restartState: restarted
+  restart:  "{{ web_restart }}"
+  name: "{{ inventory_hostname }}"
+  documentRoot: "{{ web_documentRoot }}"
+  log: "{{ web_log }}"
+  sslHome: "{{ web_ssl }}"
+  sslCertificateFile: "{{ inventory_hostname | lower}}/{{ inventory_hostname }}.crt"
+  sslCertificateKeyFile: "{{ inventory_hostname | lower}}/{{ inventory_hostname }}.key"
+  vhost: "{{ web_vhost }}"
+  http: "{{ web_http }}"
+  https: "{{web_https }}"
+  alias: []
+  reverse_proxies:
+    - from: "/api"
+      to: "https://{{ app_server }}:{{ app_serverport }}/api"
+
+web:
+  src: "{{ app_version }}/tailoringexpert-web-{{ app_version }}{{app_snapshot}}-distribution.zip"
+  dest: "{{ web_home }}"
+  remote_src: no            

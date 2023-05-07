@@ -1,0 +1,31 @@
+---
+user: tailoringexpert
+group: tailoringexpert
+
+app_version: 0.0.5
+app_snapshot: ""
+app_server: localhost
+app_serverport: 8443
+
+web_http: 80
+web_https: 443
+web_restart: "systemctl restart apache2"
+
+web_home: /app
+web_documentRoot: "{{ web_home }}"
+web_asset: "{{ web_documentRoot }}/assets"
+web_static: "{{ web_documentRoot }}/static"
+web_vhost: "/etc/apache2/sites-enabled"
+web_log: "{{ web_home }}/logs"
+web_ssl: "{{ web_home }}/certs"
+web_conf: "{{ web_home }}/conf"
+
+web_directories: [ 
+  "{{ web_home }}",
+  "{{ web_ssl }}",
+  "{{ web_log }}",
+  "{{ web_asset }}",
+  "{{ web_static }}",
+  "{{ web_vhost }}",
+  "{{ web_conf }}"
+]  
