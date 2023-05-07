@@ -1,0 +1,40 @@
+---
+- name: Install web frontend
+  unarchive:
+    src: "{{ web.src }}"
+    dest: "{{ web.dest }}"
+    remote_src: "{{ web.remote_src }}"
+
+- name: Set tenant in web
+  replace:
+    path: "{{ web.dest }}/index.html"
+    regexp: '(// CONFIGURATIONS_PLACEHOLDER)'
+    replace: 'window.configs = { "VUE_APP_TENANT":"{{ tenant_id }}" }'
+    backup: no
+  when: tenant_id is defined   
+   
+- name: Install SSL certificate
+  copy:
+    src: "{{ item }}"
+    dest:  "{{ web_ssl }}"
+    remote_src: no
+  loop:
+    - "{{ webserver.sslCertificateFile }}"
+    - "{{ webserver.sslCertificateKeyFile }}"
+              
+- name: Create vhost
+  template:
+    src: vhost.conf.j2 
+    dest:  "{{ web_home }}/conf/{{ webserver.name }}.conf"
+    #dest:  "{{ webserver.vhost }}/tailoringexpert-https-vhost.conf"
+    mode: 0640
+  notify: restart web 
+
+- name: Enable site
+  file:
+    src: "{{ web_home }}/conf/{{ webserver.name }}.conf"
+    dest: "{{ webserver.vhost }}/tailoringexpert-https-vhost.conf"
+    state: link
+  become: true 
+  remote_user: "{{ sudo_user }}"
+  notify: restart web 

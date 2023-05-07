@@ -1,0 +1,5 @@
+---
+- name: restart web
+  command: "{{ webserver.restart }}"  
+  become: true
+  remote_user: "{{ sudo_user }}"

@@ -1,0 +1,13 @@
+---
+- name: "{{ tenant.name | upper }} | create directories for data"
+  file:
+    path: "{{ item.dest }}"
+    state: directory    
+  loop: "{{ tenant.assets }}"
+
+- name: "{{ tenant.name | upper }} | install data"
+  unarchive:
+    src: "{{ item.src }}"
+    dest: "{{ item.dest }}"
+    remote_src: "{{ item.remote_src }}"
+  loop: "{{ tenant.assets }}"

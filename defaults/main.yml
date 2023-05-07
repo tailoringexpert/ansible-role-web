@@ -1,0 +1,56 @@
+---
+directories: [ 
+  "{{ web_home }}",
+  "{{ web_ssl }}",
+  "{{ web_log }}",
+  "{{ web_asset }}",
+  "{{ web_static }}",
+  "{{ web_vhost }}",
+   "{{ web_home }}/conf"
+]  
+
+# BEGIN check vars
+user: tailoringexpert
+group: tailoringexpert
+
+app_version: 0.0.5
+app_snapshot: "-SNAPSHOT"
+app_server: localhost
+app_serverport: 8443
+
+web_http: 80
+web_https: 443
+web_restart: "service apache2 restart"
+
+web_home: /app
+web_documentRoot: "{{ web_home }}"
+web_asset: "{{ web_documentRoot }}/assets"
+web_static: "{{ web_documentRoot }}/static"
+web_vhost: "/etc/apache2/sites-enabled"
+web_log: "{{ web_home }}/logs"
+web_ssl: "{{ web_home }}/certs"
+# END check vars
+
+
+webserver:
+  #service: apache2
+  #restartState: restarted
+  restart:  "{{ web_restart }}"
+  name: "{{ inventory_hostname }}"
+  documentRoot: "{{ web_documentRoot }}"
+  log: "{{ web_log }}"
+  sslHome: "{{ web_ssl }}"
+  sslCertificateFile: "{{ inventory_hostname | lower}}/{{ inventory_hostname }}.crt"
+  sslCertificateKeyFile: "{{ inventory_hostname | lower}}/{{ inventory_hostname }}.key"
+  vhost: "{{ web_vhost }}"
+  http: "{{ web_http }}"
+  https: "{{web_https }}"
+  alias: []
+  reverse_proxies:
+    - from: "/api"
+      to: "https://{{ app_server }}:{{ app_serverport }}/api"
+
+web:
+  src: "{{ app_version }}/tailoringexpert-web-{{ app_version }}{{app_snapshot}}-distribution.zip"
+  dest: "{{ web_home }}"
+  remote_src: no            
