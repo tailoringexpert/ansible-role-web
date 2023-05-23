@@ -1,20 +1,53 @@
 ---    
+- debug:
+    msg: "{{ user }}"
+    
 - name: Create directory layout
   file:
     path: "{{ item }}"
     state: directory
-    owner: "{{ user }}"
-    group: "{{ group }}"
+ #   owner: "{{ user }}"
+ #   group: "{{ group }}"
   with_items: "{{ web_directories }}"
-  become: true
-  remote_user: "{{ sudo_user }}"
+#  become: true
+#  remote_user: "{{ sudo_user }}"
   when: item | length > 0
+       
+- name: Install web frontend
+  unarchive:
+    src: "{{ web.src }}"
+    dest: "{{ web.dest }}"
+    remote_src: "{{ web.remote_src }}"
+
+- name: Set tenant in web
+  replace:
+    path: "{{ web.dest }}/index.html"
+    regexp: '(// CONFIGURATIONS_PLACEHOLDER)'
+    replace: 'window.configs = { "VUE_APP_TENANT":"{{ web_tenant_id }}" }'
+    backup: no
+  when: web_tenant_id is defined   
    
-  
-- include_tasks: 
-    file: vhost.yml
+- name: Install SSL certificate
+  copy:
+    src: "{{ item }}"
+    dest:  "{{ web_ssl }}"
+    remote_src: no
+  loop:
+    - "{{ webserver.sslCertificateFile }}"
+    - "{{ webserver.sslCertificateKeyFile }}"
+              
+- name: Create vhost
+  template:
+    src: vhost.conf.j2 
+    dest: "{{ webserver.vhost }}/tailoringexpert-https-vhost.conf"
+    #dest:  "{{ web_home }}/conf/{{ webserver.name }}.conf"
+    #dest:  "{{ webserver.vhost }}/tailoringexpert-https-vhost.conf"
+    mode: 0640
+  become: true 
+  remote_user: "{{ sudo_user }}"
+  notify: restart web     
     
-- include_tasks: assets.yml
+- include_tasks: asset.yml
   loop_control:
     loop_var: tenant
   loop: "{{ tenants }}"    
